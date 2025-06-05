@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Members Only</title>
+</head>
+<body>
+    <nav>
+        <% if (user) { %>
+            <a href="/messages/new">Create New Message</a>
+            <% if (!isMember) { %>
+                <a href="/membership/join-club">Join the Club</a>
+            <% } %>
+            <a href="/auth/logout">Logout</a>
+        <% } else { %>
+            <a href="/auth/login">Login</a>
+            <a href="/auth/signup">Sign Up</a>
+        <% } %>
+    </nav>
+
+    <h1>Message Board</h1>
+
+    <% if (locals.error) { %>
+        <div class="error"><%= error %></div>
+    <% } %>
+
+    <div class="messages">
+        <% messages.forEach(message => { %>
+            <div class="message">
+                <h2><%= message.title %></h2>
+                <p><%= message.content %></p>
+                
+                <% if (isMember) { %>
+                    <div class="message-meta">
+                        <p>Posted by: <%= message.author.firstName %> <%= message.author.lastName %></p>
+                        <p>Date: <%= message.createdAt.toLocaleDateString() %></p>
+                    </div>
+                <% } else { %>
+                    <p class="message-hint">*** Join the club to see who wrote this! ***</p>
+                <% } %>
+
+                <% if (user && user.isAdmin) { %>
+                    <form action="/messages/delete/<%= message.id %>" method="POST">
+                        <button type="submit">Delete Message</button>
+                    </form>
+                <% } %>
+            </div>
+        <% }) %>
+    </div>
+</body>
+</html>

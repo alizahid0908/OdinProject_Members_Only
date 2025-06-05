@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Join the Club</title>
+</head>
+<body>
+    <h1>Join the Exclusive Club</h1>
+    <% if (locals.error) { %>
+        <div class="error"><%= error %></div>
+    <% } %>
+    <form action="/membership/join-club" method="POST">
+        <div>
+            <label for="passcode">Enter the Secret Passcode:</label>
+            <input type="password" id="passcode" name="passcode" required>
+        </div>
+        <button type="submit">Join Club</button>
+    </form>
+    <p>Only members can see who wrote the messages. Enter the secret passcode to join!</p>
+</body>
+</html>
