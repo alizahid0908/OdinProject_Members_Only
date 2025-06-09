@@ -6,7 +6,10 @@ import passport from 'passport';
 export const signup = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        return res.status(400).json({ errors: errors.array() });
+        return res.render('signup', { 
+            errors: errors.array(),
+            oldInput: req.body 
+        });
     }
 
     try {
@@ -14,7 +17,10 @@ export const signup = async (req, res) => {
 
         const existingUser = await User.findOne({ where: { email } });
         if (existingUser) {
-            return res.status(400).json({ message: 'Email already registered' });
+            return res.render('signup', {
+                errors: [{ msg: 'Email already registered' }],
+                oldInput: req.body
+            });
         }
 
         const salt = await bcrypt.genSalt(10);
@@ -29,11 +35,19 @@ export const signup = async (req, res) => {
             isAdmin: isAdmin === 'on'
         });
 
-        req.session.userId = user.id;
-        res.status(201).json({ message: 'User created successfully' });
+        req.login(user, (err) => {
+            if (err) {
+                console.error('Login error:', err);
+                return next(err);
+            }
+            return res.redirect('/');
+        });
     } catch (error) {
         console.error('Signup error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.render('signup', {
+            errors: [{ msg: 'Error creating account. Please try again.' }],
+            oldInput: req.body
+        });
     }
 };
 
@@ -54,4 +68,8 @@ export const logout = (req, res) => {
         }
         res.redirect('/');
     });
+};
+
+export const getSignup = (req, res) => {
+    res.render('signup');
 };

@@ -6,25 +6,22 @@ export const getAllMessages = async (req, res) => {
             include: [{
                 model: User,
                 as: 'author',
-                attributes: ['firstName', 'lastName', 'isAdmin']
+                attributes: ['firstName', 'lastName']
             }],
             order: [['createdAt', 'DESC']]
         });
 
         res.render('index', {
             messages,
+            user: req.user,
             isMember: req.user?.membershipStatus === 'member',
-            isAdmin: req.user?.isAdmin,
-            user: req.user
+            isAdmin: req.user?.isAdmin
         });
     } catch (error) {
         console.error('Error fetching messages:', error);
         res.render('index', { 
             messages: [], 
-            error: 'Error loading messages',
-            isMember: false,
-            isAdmin: false,
-            user: null 
+            error: 'Error loading messages'
         });
     }
 };
@@ -35,8 +32,11 @@ export const getNewMessage = (req, res) => {
 
 export const createMessage = async (req, res) => {
     try {
+        if (!req.user) {
+            return res.redirect('/auth/login');
+        }
+
         const { title, content } = req.body;
-        
         await Message.create({
             title,
             content,
@@ -45,30 +45,26 @@ export const createMessage = async (req, res) => {
 
         res.redirect('/');
     } catch (error) {
-        console.error('Message creation error:', error);
-        res.render('new-message', { error: 'Error creating message' });
+        console.error('Error creating message:', error);
+        res.render('new-message', { 
+            error: 'Error creating message'
+        });
     }
 };
 
 export const deleteMessage = async (req, res) => {
     try {
-        const messageId = req.params.id;
-        
-        // Check if the user is an admin
-        if (!req.user || !req.user.isAdmin) {
+        if (!req.user?.isAdmin) {
             return res.status(403).send('Unauthorized');
         }
 
-        // Delete the message
         await Message.destroy({
-            where: {
-                id: messageId
-            }
+            where: { id: req.params.id }
         });
 
         res.redirect('/');
     } catch (error) {
         console.error('Error deleting message:', error);
-        res.status(500).send('Error deleting message');
+        res.redirect('/');
     }
 };

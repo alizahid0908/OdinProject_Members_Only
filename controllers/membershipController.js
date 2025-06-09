@@ -1,14 +1,17 @@
 import { User } from '../models/index.js';
 
 export const getJoinClub = (req, res) => {
-    if (!req.session.userId) {
+    if (!req.user) {
         return res.redirect('/auth/login');
+    }
+    if (req.user.membershipStatus === 'member') {
+        return res.redirect('/');
     }
     res.render('join-club');
 };
 
 export const joinClub = async (req, res) => {
-    if (!req.session.userId) {
+    if (!req.user) {
         return res.redirect('/auth/login');
     }
 
@@ -16,20 +19,23 @@ export const joinClub = async (req, res) => {
 
     if (passcode !== process.env.CLUB_PASSCODE) {
         return res.render('join-club', {
-            error: 'Invalid passcode'
+            error: 'Invalid passcode. Try again!'
         });
     }
 
     try {
         await User.update(
             { membershipStatus: 'member' },
-            { where: { id: req.session.userId } }
+            { where: { id: req.user.id } }
         );
-        res.redirect('/messages'); // Redirect to messages page after successful upgrade
+
+        req.user.membershipStatus = 'member';
+        
+        res.redirect('/');
     } catch (error) {
         console.error('Membership upgrade error:', error);
         res.render('join-club', {
-            error: 'Something went wrong. Please try again.'
+            error: 'Error upgrading membership. Please try again.'
         });
     }
 };

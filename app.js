@@ -21,12 +21,30 @@ app.use(session({
   saveUninitialized: true,
 }));
 
+
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 
 app.set('view engine', 'ejs');
 app.set('views', './views');
+
+app.use(checkMembership);
+app.use((req, res, next) => {
+    res.locals.user = req.user;
+    res.locals.isMember = res.locals.isMember;
+    res.locals.isAdmin = res.locals.isAdmin;
+    next();
+});
+
+
+app.use('/auth', authRoutes);
+app.use('/membership', membershipRoutes);
+app.use('/messages', messageRoutes);
+app.get('/signup', (req, res) => {
+    res.render('signup');
+});
+app.get('/', getAllMessages);
 
 async function initializeDatabase() {
   try {
@@ -40,23 +58,6 @@ async function initializeDatabase() {
 }
 
 initializeDatabase();
-
-app.use('/auth', authRoutes);
-app.use('/membership', membershipRoutes);
-app.use('/messages', messageRoutes);
-app.get('/signup', (req, res) => {
-    res.render('signup');
-});
-app.get('/', getAllMessages);
-
-app.use(checkMembership);
-
-app.use((req, res, next) => {
-    res.locals.user = req.user;
-    res.locals.isMember = req.isMember;
-    res.locals.isAdmin = req.isAdmin;
-    next();
-});
 
 app.listen(3000, () => {
   console.log('Server is running on port 3000');

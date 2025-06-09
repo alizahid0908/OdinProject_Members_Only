@@ -2,6 +2,11 @@
 <html>
 <head>
     <title>Members Only</title>
+    <style>
+        .message { border: 1px solid #ddd; margin: 10px 0; padding: 10px; }
+        .message-meta { color: #666; font-size: 0.9em; }
+        .delete-btn { color: red; }
+    </style>
 </head>
 <body>
     <nav>
@@ -19,28 +24,22 @@
 
     <h1>Message Board</h1>
 
-    <% if (locals.error) { %>
-        <div class="error"><%= error %></div>
-    <% } %>
-
     <div class="messages">
         <% messages.forEach(message => { %>
             <div class="message">
                 <h2><%= message.title %></h2>
                 <p><%= message.content %></p>
                 
-                <% if (isMember) { %>
+                <% if (isMember || isAdmin) { %>
                     <div class="message-meta">
                         <p>Posted by: <%= message.author.firstName %> <%= message.author.lastName %></p>
                         <p>Date: <%= message.createdAt.toLocaleDateString() %></p>
                     </div>
-                <% } else { %>
-                    <p class="message-hint">*** Join the club to see who wrote this! ***</p>
                 <% } %>
 
-                <% if (user && user.isAdmin) { %>
+                <% if (isAdmin) { %>
                     <form action="/messages/delete/<%= message.id %>" method="POST">
-                        <button type="submit">Delete Message</button>
+                        <button type="submit" class="delete-btn">Delete Message</button>
                     </form>
                 <% } %>
             </div>
